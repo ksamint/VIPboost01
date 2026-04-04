@@ -1,7 +1,9 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Eye, EyeOff, Shield } from 'lucide-react';
+import { Eye, EyeOff, Shield, Users } from 'lucide-react';
 import { useAuthStore } from '../stores/authStore';
+
+const LOGTO_ENABLED = import.meta.env.VITE_LOGTO_ENABLED === 'true';
 
 export default function LoginPage() {
   const navigate = useNavigate();
@@ -24,6 +26,11 @@ export default function LoginPage() {
     }
   };
 
+  const handleSocialLogin = () => {
+    const redirectUri = `${window.location.origin}/auth/callback`;
+    window.location.href = `${import.meta.env.VITE_API_URL}/auth/logto/signin?redirect_uri=${encodeURIComponent(redirectUri)}`;
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-space-800 to-space-900 flex flex-col">
       <div className="flex-1 flex flex-col items-center justify-center px-6 py-12">
@@ -37,7 +44,19 @@ export default function LoginPage() {
           <p className="text-space-400 text-sm">赋能一线公关团队</p>
         </div>
 
-        <div className="w-full max-w-sm">
+        <div className="w-full max-w-sm space-y-4">
+          {LOGTO_ENABLED && (
+            <button
+              onClick={handleSocialLogin}
+              className="w-full py-3.5 rounded-xl bg-white text-space-900 font-semibold hover:bg-space-100 transition-all duration-200 flex items-center justify-center gap-2"
+            >
+              <Users size={20} />
+              使用企业账号登录
+            </button>
+          )}
+
+          {LOGTO_ENABLED && <div className="relative"><div className="absolute inset-0 flex items-center"><div className="w-full border-t border-space-600"></div></div><div className="relative flex justify-center text-sm"><span className="px-2 bg-space-900 text-space-400">或</span></div></div>}
+
           <form onSubmit={handleSubmit} className="glass-card p-6 space-y-5">
             {error && (
               <div className="p-3 rounded-lg bg-red-500/10 border border-red-500/30 text-red-400 text-sm">

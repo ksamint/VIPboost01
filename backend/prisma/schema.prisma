@@ -1,0 +1,120 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id                String         @id @default(uuid())
+  username          String         @unique
+  passwordHash      String
+  role              String         @default("VIP_HOST")
+  nickname          String?
+  avatar            String?
+  createdAt         DateTime       @default(now())
+  updatedAt         DateTime       @updatedAt
+
+  profile           UserProfile?
+  teamMemberships   TeamMember[]   @relation("MemberOfTeams")
+  managedTeams      TeamMember[]    @relation("ManagerOfTeams")
+  materials         Material[]
+  pushLogs          PushLog[]
+  simulationSessions SimulationSession[]
+  dailyTasks        DailyTask[]
+
+  @@map("users")
+}
+
+model UserProfile {
+  id                  String   @id @default(uuid())
+  userId              String   @unique
+  personalityType     String?
+  preferences         String?
+  onboardingComplete   Boolean  @default(false)
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("user_profiles")
+}
+
+model Material {
+  id          String   @id @default(uuid())
+  type        String
+  title       String
+  content     String?
+  mediaUrl    String?
+  thumbnailUrl String?
+  publishDate DateTime
+  createdById String
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+
+  createdBy   User       @relation(fields: [createdById], references: [id])
+  pushLogs     PushLog[]
+
+  @@index([publishDate])
+  @@map("materials")
+}
+
+model PushLog {
+  id          String   @id @default(uuid())
+  materialId  String
+  targetUsers String
+  status      String
+  createdAt   DateTime @default(now())
+  createdById String?
+
+  material    Material @relation(fields: [materialId], references: [id], onDelete: Cascade)
+  createdBy   User?    @relation(fields: [createdById], references: [id])
+
+  @@map("push_logs")
+}
+
+model SimulationSession {
+  id          String   @id @default(uuid())
+  userId      String
+  scenario    String
+  messages    String
+  feedback    String?
+  score       Int?
+  tokenUsed   Int      @default(0)
+  createdAt   DateTime @default(now())
+  endedAt     DateTime?
+
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
+  @@map("simulation_sessions")
+}
+
+model DailyTask {
+  id          String    @id @default(uuid())
+  userId      String
+  taskType    String
+  completed   Boolean   @default(false)
+  completedAt DateTime?
+  date        DateTime  @default(now())
+
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, date])
+  @@map("daily_tasks")
+}
+
+model TeamMember {
+  id        String   @id @default(uuid())
+  managerId String
+  memberId  String
+  createdAt DateTime @default(now())
+
+  manager   User @relation("ManagerOfTeams", fields: [managerId], references: [id], onDelete: Cascade)
+  member    User @relation("MemberOfTeams", fields: [memberId], references: [id], onDelete: Cascade)
+
+  @@unique([managerId, memberId])
+  @@map("team_members")
+}

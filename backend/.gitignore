@@ -1,0 +1,23 @@
+node_modules/
+.env
+.env.local
+
+# Keep prisma schema but not migrations
+prisma/migrations/
+!prisma/migrations/.keep
+
+# Build
+dist/
+build/
+
+# Logs
+*.log
+npm-debug.log*
+
+# Coverage
+coverage/
+
+# IDE
+.idea/
+.vscode/
+*.swp

@@ -88,6 +88,34 @@ npm install
 npm run dev
 ```
 
+## Deployment
+
+There are no GitHub Actions workflows (owner decision 2026-11-05). Deploys run from the
+operator's machine with `scripts/deploy.sh`, one target or several at a time:
+
+```bash
+scripts/deploy.sh vercel           # frontend/ -> Vercel production
+scripts/deploy.sh railway          # backend -> Railway service vip-host-api
+scripts/deploy.sh pages            # build frontend/ and publish dist/ to the gh-pages branch
+scripts/deploy.sh render           # trigger a Render deploy of the backend
+scripts/deploy.sh ssh              # docker-compose redeploy on a self-hosted server (disabled by default)
+scripts/deploy.sh all              # vercel railway pages render (+ ssh when enabled)
+```
+
+Every target refuses to run unless the working tree is clean and `HEAD` equals `origin/main`, and
+builds from a clean `git archive` export of `HEAD`. Secrets come from the environment only:
+
+| Target | Environment variables |
+|--------|-----------------------|
+| `vercel` | `VERCEL_TOKEN`, `VERCEL_ORG_ID`, `VERCEL_PROJECT_ID` |
+| `railway` | `RAILWAY_TOKEN` |
+| `pages` | `API_URL` (optional, becomes `VITE_API_URL`); pushes with your own git credentials |
+| `render` | `RENDER_DEPLOY_TOKEN` (API key, or a deploy hook URL), `RENDER_BACKEND_SERVICE_ID` (API key only) |
+| `ssh` | `VIPBOOST_ENABLE_SSH_DEPLOY=1`, `SERVER_HOST` (may be a `~/.ssh/config` alias), optional `SERVER_USER`; uses your own SSH config and agent |
+
+GitHub Pages must be set to **Settings → Pages → Build and deployment → Source: Deploy from a
+branch**, branch `gh-pages`, folder `/ (root)`.
+
 ## Default Credentials
 
 After first startup, a default admin user is created:
